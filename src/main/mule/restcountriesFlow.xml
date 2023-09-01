@@ -27,6 +27,12 @@ fun filterCountriesByName(searchString: String, countries: Array<Object>): Array
         
 fun filterByPopulation(countries: Array<Object>, limitInMillions: Number): Array<Object> =
     countries filter (country) -> country.population < (limitInMillions * 1000000)
+    
+fun sortCountries(countriesArray, sortOrder) =
+    if (sortOrder == "ascend") 
+        countriesArray orderBy $.name.common 
+    else 
+        (countriesArray orderBy $.name.common)[-1 to 0]
 ---
 payload]]></ee:set-payload>
             </ee:message>
