@@ -24,6 +24,9 @@ output application/json
 fun filterCountriesByName(searchString: String, countries: Array<Object>): Array<Object> =
     countries filter (country) -> 
         contains(lower((country.name.common)) , lower(searchString))
+        
+fun filterByPopulation(countries: Array<Object>, limitInMillions: Number): Array<Object> =
+    countries filter (country) -> country.population < (limitInMillions * 1000000)
 ---
 payload]]></ee:set-payload>
             </ee:message>
