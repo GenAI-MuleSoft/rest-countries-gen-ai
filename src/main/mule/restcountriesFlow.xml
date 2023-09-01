@@ -20,6 +20,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
+
+fun filterCountriesByName(searchString: String, countries: Array<Object>): Array<Object> =
+    countries filter (country) -> 
+        contains(lower((country.name.common)) , lower(searchString))
 ---
 payload]]></ee:set-payload>
             </ee:message>
