@@ -12,6 +12,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 <!-- Logger at the beginning of the flow -->
         <logger level="INFO" doc:name="Logger (Start)" message="Flow 'restcountriesFlow' has started."/>
         
+   <!-- Reference to the sub-flow -->  
+   <flow-ref name="setQueryParameters" doc:name="Flow Reference to setQueryParameters"/>
+        
         <!-- HTTP Request -->
         <http:request method="GET" doc:name="Request" config-ref="HTTP_Request_configuration" path="/v3.1/all" />
 
@@ -28,16 +31,36 @@ fun filterCountriesByName(searchString: String, countries: Array<Object>): Array
 fun filterByPopulation(countries: Array<Object>, limitInMillions: Number): Array<Object> =
     countries filter (country) -> country.population < (limitInMillions * 1000000)
     
-fun sortCountries(countriesArray, sortOrder) =
-    if (sortOrder == "ascend") 
+fun sortCountries(countriesArray, sortOrder = null) =
+    if (isEmpty(countriesArray))
+      countriesArray
+    else if (sortOrder == "ascend") 
         countriesArray orderBy $.name.common 
     else 
         (countriesArray orderBy $.name.common)[-1 to 0]
+    
         
-fun pagination(data, offset: Number, limit: Number) = 
+fun pagination(data, offset = null, limit = null) = 
+if (offset == null and limit == null) data
+else if  (isEmpty(data))
+      data
+else
   data filter ((item, index) -> (index >= offset) and (index < (offset + limit)))
+
+
+fun combinedFilter(name , population , sort, OFFSET, LIMIT, data) =
+ if (name == null and population == null and sort == null and OFFSET == null and LIMIT == null) 
+        data
+    else if (population != null)
+       pagination(sortCountries(filterByPopulation(data, population), sort), OFFSET, LIMIT)
+    else if (name != null)
+     	pagination(sortCountries(filterCountriesByName(name, data), sort), OFFSET, LIMIT)
+         
+    else 
+        pagination(sortCountries(data, sort), OFFSET, LIMIT)
 ---
-payload]]></ee:set-payload>
+
+combinedFilter(vars.name default null, vars.population default null, vars.sortByCountry default null, vars.OFFSET default null, vars.LIMIT default null, payload)]]></ee:set-payload>
             </ee:message>
         </ee:transform>
         
@@ -45,4 +68,13 @@ payload]]></ee:set-payload>
         <logger level="INFO" doc:name="Logger (End)" message="Flow 'restcountriesFlow' has completed."/>
     
     </flow>
+    
+<sub-flow name="setQueryParameters">
+    <!-- Extract query parameters and set them as flow variables -->
+    <set-variable variableName="name" value="#[attributes.queryParams.name]" doc:name="Set Variable (name)"/>
+    <set-variable variableName="population" value="#[attributes.queryParams.population]" doc:name="Set Variable (population)"/>
+    <set-variable variableName="sortByCountry" value="#[attributes.queryParams.sort]" doc:name="Set Variable (sort-by-country)"/>
+    <set-variable variableName="OFFSET" value="#[attributes.queryParams.OFFSET]" doc:name="Set Variable (OFFSET)"/>
+    <set-variable variableName="LIMIT" value="#[attributes.queryParams.LIMIT]" doc:name="Set Variable (LIMIT)"/>
+</sub-flow>
 </mule>
