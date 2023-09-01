@@ -33,6 +33,9 @@ fun sortCountries(countriesArray, sortOrder) =
         countriesArray orderBy $.name.common 
     else 
         (countriesArray orderBy $.name.common)[-1 to 0]
+        
+fun pagination(data, offset: Number, limit: Number) = 
+  data filter ((item, index) -> (index >= offset) and (index < (offset + limit)))
 ---
 payload]]></ee:set-payload>
             </ee:message>
