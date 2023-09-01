@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="restcountriesFlow-test-suite.xml" />
+<munit:test name="restcountriesFlowTest" description="MUnit Test for restcountriesFlow">
+    <munit:behavior>
+        <!-- Mock the external HTTP call -->
+        <munit-tools:mock-when doc:name="Mock HTTP Request" processor="http:request">
+            <munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="GET" attributeName="method" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+                <munit-tools:payload value="#[[
+                    { 'name': { 'common': 'Spain' }, 'population': 50000000 },
+                    { 'name': { 'common': 'Germany' }, 'population': 80000000 },
+                    { 'name': { 'common': 'France' }, 'population': 65000000 }
+                ]]"/>
+            </munit-tools:then-return>
+        </munit-tools:mock-when>
+    </munit:behavior>
+    
+    <munit:execution>
+      
+			<ee:transform doc:name="Transform Message" doc:id="6c8eb7be-d129-44a8-887b-573fd26ec5d4" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+					<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+queryParams: {'name':'Sp'}]]></ee:set-attributes>
+				</ee:message>
+			</ee:transform>
+			<flow-ref name="restcountriesFlow" doc:name="Flow-ref to restcountriesFlow"/>
+    </munit:execution>
+    
+    <munit:validation>
+        <!-- Assert the response -->
+        <munit-tools:assert-that expression="#[payload[0].name.common]" is='#[MunitTools::equalTo("Spain")]' doc:name="Assert Spain is present"/>
+        <munit-tools:assert-that expression="#[sizeOf(payload) == 1]" is='#[MunitTools::equalTo(true)]' doc:name="Assert only Spain is in the response"/>
+    </munit:validation>
+</munit:test>
+
+<munit:test name="restcountriesFlowTestByPopulation" description="MUnit Test for restcountriesFlow with population parameter">
+    <munit:behavior>
+        <!-- Mock the external HTTP call -->
+        <munit-tools:mock-when doc:name="Mock HTTP Request" processor="http:request">
+            <munit-tools:with-attributes>
+                <munit-tools:with-attribute whereValue="GET" attributeName="method"/>
+                <munit-tools:with-attribute whereValue="/v3.1/all" attributeName="path"/>
+            </munit-tools:with-attributes>
+            <munit-tools:then-return>
+                <munit-tools:payload value="#[[
+                    { 'name': { 'common': 'Spain' }, 'population': 50000000 },
+                    { 'name': { 'common': 'Germany' }, 'population': 80000000 },
+                    { 'name': { 'common': 'France' }, 'population': 65000000 },
+                    { 'name': { 'common': 'Luxembourg' }, 'population': 600000 }
+                ]]"/>
+            </munit-tools:then-return>
+        </munit-tools:mock-when>
+    </munit:behavior>
+    
+    <munit:execution>
+        <ee:transform doc:name="Transform Message" doc:id="dd1848ab-b117-473c-a7ba-364998aa975d">
+				<ee:message>
+					<ee:set-attributes><![CDATA[%dw 2.0
+output application/java
+---
+queryParams: 'population': 10]]></ee:set-attributes>
+				</ee:message>
+			</ee:transform>
+			<flow-ref name="restcountriesFlow" doc:name="Flow-ref to restcountriesFlow"/>
+    
+</munit:execution>
+    
+    <munit:validation>
+        <!-- Assert the response -->
+        <munit-tools:assert-that expression="#[payload[0].name.common]" is='#[MunitTools::equalTo("Luxembourg")]' doc:name="Assert Luxembourg is present"/>
+        <munit-tools:assert-that expression="#[sizeOf(payload) == 1]" is='#[MunitTools::equalTo(true)]' doc:name="Assert only Luxembourg is in the response since its population is below 10 million"/>
+    </munit:validation>
+</munit:test>
+
+<munit:test name="restcountriesFlowTestSortAscend" description="MUnit Test for restcountriesFlow with sort parameter set to ascend">
+    <munit:behavior>
+        <!-- Mock the external HTTP call -->
+        <munit-tools:mock-when doc:name="Mock HTTP Request" processor="http:request">
+            <munit-tools:with-attributes>
+                <munit-tools:with-attribute whereValue="GET" attributeName="method"/>
+                <munit-tools:with-attribute whereValue="/v3.1/all" attributeName="path"/>
+            </munit-tools:with-attributes>
+            <munit-tools:then-return>
+                <munit-tools:payload value="#[[
+                    { 'name': { 'common': 'Germany' }, 'population': 80000000 },
+                    { 'name': { 'common': 'France' }, 'population': 65000000 },
+                    { 'name': { 'common': 'Spain' }, 'population': 50000000 }
+                ]]"/>
+            </munit-tools:then-return>
+        </munit-tools:mock-when>
+    </munit:behavior>
+    
+    <munit:execution>
+        <ee:transform doc:name="Transform Message" doc:id="b014722a-ca23-491a-8071-9443e2fa4cd5" >
+				<ee:message >
+					<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+queryParams: {'sort':'ascend'}]]></ee:set-attributes>
+				</ee:message>
+			</ee:transform>
+			<flow-ref name="restcountriesFlow" doc:name="Flow-ref to restcountriesFlow"/>
+    </munit:execution>
+    
+    <munit:validation>
+        <!-- Assert the response -->
+        <munit-tools:assert-that expression="#[payload[0].name.common]" is='#[MunitTools::equalTo("France")]' doc:name="Assert France is the first country"/>
+        <munit-tools:assert-that expression="#[payload[1].name.common]" is='#[MunitTools::equalTo("Germany")]' doc:name="Assert Germany is the second country"/>
+        <munit-tools:assert-that expression="#[payload[2].name.common]" is='#[MunitTools::equalTo("Spain")]' doc:name="Assert Spain is the third country"/>
+    </munit:validation>
+</munit:test>
+
+</mule>

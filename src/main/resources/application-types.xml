@@ -277,4 +277,5 @@ type auto_f410e4f9_2c92_4262_baa2_f1f239ac8382_Input_Variables_outboundHeaders =
       </types:output-event>
     </types:processor-declaration>
   </types:enrichment>
+  <types:enrichment select="#dd1848ab-b117-473c-a7ba-364998aa975d"/>
 </types:mule>
