@@ -1,0 +1,29 @@
+%dw 2.0
+
+type auto_f410e4f9_2c92_4262_baa2_f1f239ac8382_Input_Attributes = {|
+  clientCertificate?: {|
+    publicKey?: {|  |}, 
+    "type"?: String, 
+    encoded?: Binary
+  |}, 
+  headers: {|  |}, 
+  listenerPath: String, 
+  method: String, 
+  queryParams: {|
+    name: String, 
+    population: Number, 
+    "sort-by-country": "descend" | "ascend", 
+    OFFSET: Number, 
+    LIMIT: Number
+  |}, 
+  queryString: String, 
+  relativePath: String, 
+  remoteAddress: String, 
+  requestPath: String, 
+  requestUri: String, 
+  scheme: String, 
+  uriParams: {|  |}, 
+  version: String, 
+  localAddress: String
+|}
+
